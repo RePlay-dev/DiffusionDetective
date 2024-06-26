@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from detectors import FastAIDetector
-from explainers import RISEExplainer, AblationCAMExplainer
+from explainers import RISEExplainer, AblationCAMExplainer, SHAPExplainer
 # The custom labeling function get_y needs to be imported in order to unpickle the FastAI model
 # noinspection PyUnresolvedReferences
 from utils import get_y
@@ -95,13 +95,15 @@ if __name__ == '__main__':
     # detector = CorviDetector()
 
     img = PILImage.create('img/fake/midjourney_cifake/0100 (4).jpg')
+    # img = PILImage.create('img/real/flickr/371897.jpg')
+    # img = PILImage.create('img/fake/synthbuster/midjourney-r0a0852c6t.png')
 
     # detector = DireDetector('models/lsun_adm.pth')
     # img = PILImage.create('img/dire-val_lsun-bedroom_adm_0.png')
 
-    explainers = ['RISE', 'AblationCAM']
+    explainers = ['RISE', 'AblationCAM', 'SHAP']
     detector.add_explainer('RISE', RISEExplainer(detector.model))
-    # detector.add_explainer('SHAP', SHAPExplainer(detector.model))
+    detector.add_explainer('SHAP', SHAPExplainer(detector.model))
     detector.add_explainer('AblationCAM', AblationCAMExplainer(detector.model))
 
     prediction, probability, _ = detector.get_prediction(img)

@@ -1,23 +1,44 @@
 import numpy as np
-import shap
 import torch
+from captum.attr import GradientShap
+from captum.attr._utils.visualization import _normalize_attr
+from torchvision.transforms.functional import gaussian_blur
 
 from explainers.base import Explainer
-from utils import device
 
 
 class SHAPExplainer(Explainer):
+
     def get_saliency(self, img_tensor: torch.Tensor) -> np.ndarray:
-        print("Generating SHAP Explanation")
-        # print(self.model)
-        background = torch.randn((1, 3, 224, 224)).to(device)
-        explainer = shap.GradientExplainer(self.model, background)
+        print("Generating Advanced SHAP Explanation")
 
-        # Generate shap values
-        shap_values, indexes = explainer.shap_values(img_tensor, ranked_outputs=1)
+        # Create adaptive baselines (blurred versions of the input)
+        baselines = []
+        for sigma in [2.0, 5.0, 10.0, 20.0]:
+            blurred = gaussian_blur(img_tensor, kernel_size=[15, 15], sigma=[sigma, sigma])
+            baselines.append(blurred)
+        baselines = torch.cat(baselines, dim=0)
 
-        # Sum over the absolute values of SHAP values for each channel to get a single saliency map
-        # Assuming the class of interest is the first one
-        shap_values_for_class = shap_values[..., 0]  # Select SHAP values for the class of interest
-        shap_saliency = np.sum(np.abs(shap_values_for_class), axis=1).squeeze(0)
-        return shap_saliency
+        print("img_tensor shape:", img_tensor.shape)
+        print("baselines shape:", baselines.shape)
+
+        # Get the prediction
+        self.model.eval()
+        with torch.no_grad():
+            output = self.model(img_tensor)
+            pred_label_idx = output.argmax().item()
+
+        # Compute SHAP values
+        gradient_shap = GradientShap(self.model)
+        shap_attrs = gradient_shap.attribute(img_tensor,
+                                             n_samples=50,
+                                             stdevs=0.01,
+                                             baselines=baselines,
+                                             target=pred_label_idx)
+
+        # Convert to numpy array and move channels to the last dimension
+        shap_attrs = shap_attrs.squeeze().permute(1, 2, 0).cpu().numpy()
+
+        saliency_map = _normalize_attr(shap_attrs, "absolute_value", 2, reduction_axis=2)
+
+        return saliency_map
