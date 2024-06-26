@@ -8,6 +8,7 @@ from fastai.vision.core import PILImage
 from torch import Tensor
 
 from detectors.base import Detector
+from networks.resnet import ResNet
 from utils import device
 
 
@@ -26,34 +27,28 @@ class DireDetector(Detector):
                 transforms.ToTensor(),
             )
         )
-
         super().__init__(self.model)
 
     def get_prediction(self, img: PILImage) -> tuple[str, float, int]:
         img_tensor = self.get_processed_tensor(img)
         with torch.no_grad():
             prob = self.model(img_tensor).sigmoid().item()
-            # TODO: Calculate correct probability
-        return "fake", prob, 0
+        label = "fake" if prob > 0.5 else "real"
+        return label, prob, int(prob > 0.5)
 
     def get_processed_tensor(self, img: PILImage) -> Tensor:
         img = self.trans(img.convert("RGB"))
-
         img = TF.normalize(img, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         in_tens = img.unsqueeze(0)
         return in_tens.to(device)
 
     def get_processed_image(self, img: PILImage) -> Tensor:
         img = self.trans(img.convert("RGB"))
-
-        # Permute the tensor dimensions from (3, 224, 224) to (224, 224, 3)
         return img.permute(1, 2, 0)
 
 
 def get_network(arch: str, is_train=False, continue_train=False, init_gain=0.02, pretrained=True) -> nn.Module:
     if "resnet" in arch:
-        from networks.resnet import ResNet
-
         resnet = getattr(import_module("networks.resnet"), arch)
         if is_train:
             if continue_train:

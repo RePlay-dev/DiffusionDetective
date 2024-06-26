@@ -21,15 +21,20 @@ class OpenClipLinear(nn.Module):
         self.fc = ChannelLinear(self.num_features, num_classes)
         torch.nn.init.normal_(self.fc.weight.data, 0.0, 0.02)
 
+        self.requires_grad = False
+
     def to(self, *args, **kwargs):
         self.bb[0].to(*args, **kwargs)
         super(OpenClipLinear, self).to(*args, **kwargs)
         return self
 
     def forward_features(self, x):
-        with torch.no_grad():
-            self.bb[0].eval()
+        if self.requires_grad:
             features = self.bb[0].encode_image(x, normalize=self.normalize)
+        else:
+            with torch.no_grad():
+                self.bb[0].eval()
+                features = self.bb[0].encode_image(x, normalize=self.normalize)
         return features
 
     def forward_head(self, x):

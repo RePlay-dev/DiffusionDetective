@@ -13,25 +13,42 @@ from utils import device
 class RISEExplainer(Explainer):
     def get_saliency(self, img_tensor: torch.Tensor) -> np.ndarray:
         print("Generating RISE Explanation")
-        # Initialize RISE with your model
-        input_size = (224, 224)  # The input size used during training
-        # input_size = (192, 192)  # For when using Resnet18
-        gpu_batch = 256  # Use maximum number that the GPU allows.
+
+        # Get input size from the img_tensor
+        _, _, height, width = img_tensor.shape
+        input_size = (height, width)
+
+        print(f"Using input size: {input_size}")
+
+        # Initialize RISE with your model and the input size from img_tensor
+        gpu_batch = 8  # Use maximum number that the GPU allows.
         explainer = RISE(self.model, input_size, gpu_batch).to(device)
 
         # Parameters for mask generation
+        # N: Number of masks to generate
+        # Increasing N improves accuracy but increases memory usage and computation time
+        # Example: N=3000 (less accurate, 500MB) vs N=12000 (more accurate, 2.2GB)
         N = 6000
+        # s: Size of the small masks (grid size)
+        # Smaller s creates finer-grained explanations, larger s creates coarser explanations
+        # Changing s doesn't significantly affect memory usage or computation time
+        # Example: s=4 (finer image) vs s=16 (coarser image)
         s = 8
+        # p1: Probability of each cell in the small mask being 1
+        # Lower p1 creates sparser masks, higher p1 creates denser masks
+        # Affects the threshold for areas to be labeled as influencing the detection
+        # Example: p1=0.05 (higher threshold) vs p1=0.2 (lower threshold)
         p1 = 0.1
+        # Default float64. Use float32 to half mask filesize and a small hit in area detection accuracy
+        dtype = np.dtype(np.float64)
 
         # Generate a filename based on parameters
-        filename = f'masks/masks_N={N}_s={s}_p1={p1}_size={input_size[0]}x{input_size[1]}.npy'
+        filename = f'masks/masks_N={N}_s={s}_p1={p1}_size={input_size[0]}x{input_size[1]}_{dtype.name}.npy'
 
         # Generate or load masks
-        # Check if masks file exists with the specific configuration
         if not os.path.isfile(filename):
             # If the file doesn't exist, generate new masks and save them
-            explainer.generate_masks(N=N, s=s, p1=p1, savepath=filename)
+            explainer.generate_masks(N=N, s=s, p1=p1, savepath=filename, dtype=dtype.type)
             print(f'New masks generated and saved as {filename}')
         else:
             # If the file exists, load the masks
@@ -51,14 +68,14 @@ class RISE(nn.Module):
         self.input_size = input_size
         self.gpu_batch = gpu_batch
 
-    def generate_masks(self, N, s, p1, savepath='masks.npy'):
+    def generate_masks(self, N, s, p1, savepath='masks.npy', dtype=np.float64):
         cell_size = np.ceil(np.array(self.input_size) / s)
         up_size = (s + 1) * cell_size
 
         grid = np.random.rand(N, s, s) < p1
         grid = grid.astype('float32')
 
-        self.masks = np.empty((N, *self.input_size))
+        self.masks = np.empty((N, *self.input_size), dtype=dtype)
 
         for i in tqdm(range(N), desc='Generating filters'):
             # Random shifts

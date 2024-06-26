@@ -4,7 +4,7 @@ from fastai.vision.core import PILImage
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from detectors import FastAIDetector
+from detectors import FastAIDetector, ClipDetector, CorviDetector
 from explainers import RISEExplainer, AblationCAMExplainer, SHAPExplainer
 # The custom labeling function get_y needs to be imported in order to unpickle the FastAI model
 # noinspection PyUnresolvedReferences
@@ -111,6 +111,6 @@ if __name__ == '__main__':
 
     processed_image = detector.get_processed_image(img)
 
-    matplotlib_show(processed_image, explanations, prediction, probability, fname='fastai_export_21-1')
+    matplotlib_show(processed_image, explanations, prediction, probability, fname='fastai_all')
 
     # gradcam_test(detector, img)

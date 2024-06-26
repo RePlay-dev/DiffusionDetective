@@ -41,6 +41,7 @@ class ClipDetector(Detector):
         # Classify based on the probability threshold of 0.5
         prediction = "fake" if probability_fake > 0.5 else "real"
 
+        print(f'Clip detected the image as {prediction}')
         # Return the prediction and the probability of the predicted class
         if prediction == "fake":
             return prediction, probability_fake, 0

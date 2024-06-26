@@ -2,7 +2,7 @@ import torch
 import torchvision.transforms as transforms
 from fastai.vision.core import PILImage
 from torch import Tensor, load
-from torchvision.transforms import Compose
+from torchvision.transforms import Compose, Resize, InterpolationMode, CenterCrop
 
 from detectors.base import Detector
 from networks.openclipnet import resnet50
@@ -37,6 +37,7 @@ class CorviDetector(Detector):
         # Classify based on the probability threshold of 0.5
         prediction = "fake" if probability_fake > 0.5 else "real"
 
+        print(f'Corvi detected the image as {prediction}')
         # Return the prediction and the probability of the predicted class
         if prediction == "fake":
             return prediction, probability_fake, 0
@@ -44,6 +45,8 @@ class CorviDetector(Detector):
             return prediction, probability_real, 0
 
     def get_processed_tensor(self, img: PILImage) -> Tensor:
+        img = self.get_processed_image(img)
+
         # set up tensor normalization
         normalize_transform = list()
         normalize_transform.append(transforms.ToTensor())
@@ -57,4 +60,11 @@ class CorviDetector(Detector):
         return stacked_tensor.clone().to(device)  # Retrieve the processed image as a tensor
 
     def get_processed_image(self, img: PILImage) -> PILImage:
-        return img
+        # While they don't have resize logic in the original Corvi test code they resize and crop the test data to 200x200 beforehand.
+        # set up image transforms
+        transform = list()
+        transform.append(Resize(200, interpolation=InterpolationMode.BICUBIC))
+        transform.append(CenterCrop((200, 200)))
+        transform = Compose(transform)
+
+        return transform(img)

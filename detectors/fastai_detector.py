@@ -18,6 +18,7 @@ class FastAIDetector(Detector):
         # For some reason, calling predict moves the model to the CPU
         # We have to ensure the model stays on the correct device so any operations after this stay fast
         self.model.to(device)
+        print(f'FastAI detected the image as {result}')
         return result, prob[index.item()].item(), index.item()
 
     def get_processed_tensor(self, img: PILImage) -> TensorImage:
