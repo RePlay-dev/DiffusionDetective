@@ -1,8 +1,15 @@
+from pathlib import Path
+
+import numpy as np
 import torch
 import torchvision.transforms as transforms
 from fastai.vision.core import PILImage
+from sklearn.metrics import classification_report, roc_auc_score
 from torch import Tensor, load
+from torch.utils.data import DataLoader, Dataset
+from torchvision.datasets import ImageFolder
 from torchvision.transforms import Compose, Resize, InterpolationMode, CenterCrop
+from tqdm import tqdm
 
 from detectors.base import Detector
 from networks.openclipnet import resnet50
@@ -68,3 +75,62 @@ class CorviDetector(Detector):
         transform = Compose(transform)
 
         return transform(img)
+
+    def get_test_transform(self):
+        return transforms.Compose([
+            transforms.Resize(200, interpolation=InterpolationMode.BICUBIC),
+            transforms.CenterCrop((200, 200)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
+
+    def get_metrics(self, path: Path, batch_size=32) -> tuple[dict, float]:
+        # Create test dataset and dataloader
+        test_transform = self.get_test_transform()
+        test_dataset = CorviTestDataset(root_dir=path, transform=test_transform)
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
+
+        print(f"Number of test files: {len(test_dataset)}")
+        print(f"Number of batches: {len(test_loader)}")
+
+        all_preds = []
+        all_targets = []
+
+        with torch.no_grad():
+            for batch in tqdm(test_loader, desc="Processing batches"):
+                images, targets = batch
+                images = images.to(device)
+                outputs = self.model(images)
+                probs = torch.sigmoid(outputs)
+                all_preds.extend(probs.cpu().numpy())
+                all_targets.extend(targets.cpu().numpy())
+
+        all_preds = np.array(all_preds)
+        all_targets = np.array(all_targets)
+
+        # Convert predictions to class labels
+        pred_labels = (all_preds <= 0.5).astype(int)
+
+        # Generate classification report
+        class_names = ['fake', 'real']
+
+        # Calculate AUC
+        auc = roc_auc_score(all_targets, 1 - all_preds)
+
+        report = classification_report(all_targets, pred_labels, target_names=class_names, digits=4, output_dict=True)
+
+        print(report)
+        print(f'AUC: {auc}')
+
+        return report, auc
+
+
+class CorviTestDataset(Dataset):
+    def __init__(self, root_dir, transform=None):
+        self.dataset = ImageFolder(root_dir, transform=transform)
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        return self.dataset[idx]

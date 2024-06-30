@@ -1,0 +1,11 @@
+# This file is intended for environments where PyTorch and Jupyter are already correctly installed.
+# It only installs the additional dependencies without touching the installed PyTorch version.
+fastai
+timm
+captum
+gradio
+Flask
+flask-compress
+grad-cam
+open_clip_torch
+scikit-image

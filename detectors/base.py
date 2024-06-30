@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 import torch.nn as nn
 from PIL import Image
@@ -52,4 +53,8 @@ class Detector(ABC):
 
     @abstractmethod
     def get_processed_image(self, img: PILImage) -> TensorImage | Tensor:
+        pass
+
+    @abstractmethod
+    def get_metrics(self, path: Path) -> tuple[dict, float]:
         pass

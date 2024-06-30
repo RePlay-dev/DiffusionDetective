@@ -51,6 +51,11 @@ def process_image(img: PILImage, detector: Detector, detector_name: str, img_pat
     explanations = detector.explain(img, list(detector.explainers.keys()))
     processed_image = detector.get_processed_image(img)
 
+    # Extract actual label and dataset name from the image path
+    path_parts = img_path.split(os.path.sep)
+    actual_label = 'real' if 'real' in path_parts else 'fake'
+    dataset_name = path_parts[path_parts.index(actual_label) + 1]
+
     # Calculate the number of subplots
     num_plots = len(explanations) + 1
 
@@ -62,8 +67,8 @@ def process_image(img: PILImage, detector: Detector, detector_name: str, img_pat
         axs = [axs]
 
     # Plot original image
-    axs[0].imshow(processed_image)
-    axs[0].set_title(f'Predicted: {prediction} ({probability:.2%})')
+    axs[0].imshow(processed_image, interpolation='nearest')
+    axs[0].set_title(f'Predicted: {prediction} ({probability:.2%})\nActual: {actual_label} ({dataset_name})')
     axs[0].axis('off')
 
     # Add a dummy colorbar to the first image to maintain consistent sizing
@@ -74,8 +79,8 @@ def process_image(img: PILImage, detector: Detector, detector_name: str, img_pat
     # Plot explanations
     for idx, (explainer_name, saliency_map) in enumerate(explanations.items(), start=1):
         ax = axs[idx]
-        ax.imshow(processed_image)
-        im = ax.imshow(saliency_map, cmap='jet', alpha=0.5)
+        ax.imshow(processed_image, interpolation='nearest')
+        im = ax.imshow(saliency_map, cmap='jet', alpha=0.5, interpolation='nearest')
         ax.set_title(explainer_name)
         ax.axis('off')
 
@@ -85,10 +90,10 @@ def process_image(img: PILImage, detector: Detector, detector_name: str, img_pat
         plt.colorbar(im, cax=cax)
 
     # Adjust layout to prevent overlap
-    plt.tight_layout()
+    plt.tight_layout(w_pad=4.0)
 
     # Add detector name as a centered super title
-    fig.suptitle(f'{detector_name}', fontsize=16, y=1.05)
+    fig.suptitle(f'{detector_name}')
 
     # Generate filename
     img_relative_path = os.path.relpath(img_path, 'img')
@@ -96,11 +101,11 @@ def process_image(img: PILImage, detector: Detector, detector_name: str, img_pat
     img_relative_path_without_ext = os.path.splitext(img_relative_path)[0]
     # Replace '/' with '_' and ' ' with '-'
     sanitized_path = img_relative_path_without_ext.replace('/', '_').replace(' ', '-')
-    filename = f"{detector_name}_{sanitized_path}.png"
+    filename = f"{sanitized_path}_{detector_name}.png"
     output_path = os.path.join(output_dir, filename)
 
     # Save the figure
-    plt.savefig(output_path, bbox_inches='tight')
+    plt.savefig(output_path, bbox_inches='tight', dpi=300)
     plt.close(fig)
 
 
