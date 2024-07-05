@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from fastai.vision.core import PILImage
 
-from detectors import FastAIDetector, DireDetector, ClipDetector, CorviDetector
+from detectors import DiffusionDetectiveDetector, ClipDetector, CorviDetector
 from explainers import RISEExplainer, SHAPExplainer, AblationCAMExplainer
-# The custom labeling function get_y needs to be imported in order to unpickle the FastAI model
+# The custom labeling function get_y needs to be imported in order to unpickle the DiffusionDetective model
 # noinspection PyUnresolvedReferences
 from utils import get_y
 
@@ -48,11 +48,9 @@ def convert_explanations_to_image(input_img, explanations):
 
 
 def detect_image(image, approach, explainers, info):
-    if approach == 'FastAI':
-        detector = FastAIDetector('models/export_21_convnextv2_tiny_epoch_9.pkl')
-    elif approach == 'DIRE':
-        detector = DireDetector('models/lsun_adm.pth')
-    elif approach == 'Clip':
+    if approach == 'DiffusionDetective':
+        detector = DiffusionDetectiveDetector('models/diffusion_detective.pkl')
+    elif approach == 'CLIP':
         detector = ClipDetector()
     elif approach == 'Corvi':
         detector = CorviDetector()
@@ -65,8 +63,8 @@ def detect_image(image, approach, explainers, info):
     detector.add_explainer('SHAP', SHAPExplainer(detector.model))
     detector.add_explainer('AblationCAM', AblationCAMExplainer(detector.model))
 
-    prediction, probability, _ = detector.get_prediction(image)
-    explanations = detector.explain(image, explainers)
+    prediction, probability, _ = detector.get_prediction(img)
+    explanations = detector.explain(img, explainers)
 
     processed_image = detector.get_processed_image(img)
 
@@ -82,7 +80,8 @@ if __name__ == '__main__':
         fn=detect_image,
         inputs=[
             gr.Image(label="Input Image"),
-            gr.Radio(choices=["FastAI", "DIRE", "Clip", "Corvi"], value="FastAI", label="Detection Approach",
+            gr.Radio(choices=["DiffusionDetective", "CLIP", "Corvi"], value="DiffusionDetective",
+                     label="Detection Approach",
                      info="Choose an approach"),
             gr.CheckboxGroup(choices=["RISE", "AblationCAM", "SHAP"], value="RISE", label="Explainer",
                              info="Choose one or more explainers"),
@@ -93,30 +92,21 @@ if __name__ == '__main__':
             gr.Textbox(label="Probability"),
             gr.Image(label="Saliency Map")
         ],
-        title="Image Detection and Explanation",
-        description="Upload an image to detect if it's 'real' or 'fake' using either FastAI or DIRE approach.",
+        title="DiffusionDetective",
+        description="Upload an image to detect if it's 'real' or 'fake' using the DiffusionDetective, CLIP, or Corvi approach. This detection can be explained by the RISE, AblationCAM and SHAP explainers.",
         examples=[
-            ["img/dalle2_r00444b95t.png", "FastAI", "RISE",
-             "Image generated with DALL·E 2. From the Synthbuster dataset."],
-            ["img/dalle3_r08996953t.png", "FastAI", ["RISE", "AblationCAM"],
-             "Image generated with DALL·E 3. From the Synthbuster dataset."],
-            ["img/firefly_r02b3a1ddt.png", "FastAI", "AblationCAM",
-             "Image generated with Adobe Firefly. From the Synthbuster dataset."],
-            ["img/glide_r0f979863t.png", "FastAI", "RISE", "Image generated with GLIDE. From the Synthbuster dataset."],
-            ["img/midjourney-v5_r0773471dt.png", "FastAI", "RISE",
-             "Image generated with Midjourney. From the Synthbuster dataset."],
-            ["img/stable-diffusion-1-3_r00816405t.png", "FastAI", "RISE",
+            ["img/fake/midjourney_cifake/0100 (4).jpg", "DiffusionDetective", "RISE",
+             "Image generated with Midjourney v6. From the Midjourney CIFAKE-Inspired dataset."],
+            ["img/fake/synthbuster/sd1-3-r0a2ff882t.png", "CLIP", ["RISE", "SHAP"],
              "Image generated with Stable Diffusion 1.3. From the Synthbuster dataset."],
-            ["img/stable-diffusion-1-4_r09488b39t.png", "FastAI", "RISE",
-             "Image generated with Stable Diffusion 1.4. From the Synthbuster dataset."],
-            ["img/stable-diffusion-2_r018ba134t.png", "FastAI", "RISE",
-             "Image generated with Stable Diffusion 2. From the Synthbuster dataset."],
-            ["img/stable-diffusion-xl_r01b3f004t.png", "FastAI", "RISE",
-             "Image generated with Stable Diffusion XL. From the Synthbuster dataset."],
-            ["img/real_flickr_1001465944.jpg", "FastAI", "RISE", "Real image from the Flickr30k dataset."],
-            ["img/real_raise_r0d0ff43at-0.png", "FastAI", "RISE", "Real image from the RAISE-1k dataset."],
-            ["img/dire-val_lsun-bedroom_adm_0.png", "DIRE", "RISE",
-             "Image generated with ?, trained on the LSUN Bedroom dataset."]
+            ["img/fake/stable-imagenet1k/010_3940.jpg", "Corvi", ["AblationCAM", "SHAP"],
+             "Image generated with Stable Diffusion 1.4. From the Stable ImageNet-1K dataset."],
+            ["img/real/raise/r0a966704t.png", "DiffusionDetective", ["RISE", "AblationCAM"],
+             "Real image from the RAISE-1k dataset."],
+            ["img/real/flickr/371897.jpg", "CLIP", "SHAP",
+             "Real image from the Flickr30k dataset."],
+            ["img/real/imagenet1k/00012_025771816061583.jpg", "Corvi", ["RISE", "SHAP"],
+             "Real image from the ImageNet-1k-valid dataset."],
         ],
         allow_flagging="never",
         cache_examples=False
