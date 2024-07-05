@@ -11,7 +11,7 @@ from explainers import RISEExplainer, AblationCAMExplainer, SHAPExplainer
 from utils import get_y
 
 
-def gradcam_test(detector, input_img):
+def gradcam_test(detector, input_img, fname=''):
     # Extracting saliency maps along with their names
     processed_tensor = detector.get_processed_tensor(input_img)
     cam_results = detector.explainers["AblationCAM"].get_all_gradcam_saliency_maps(processed_tensor)
@@ -29,16 +29,20 @@ def gradcam_test(detector, input_img):
     plt.subplot(3, 2, 1)
     plt.axis('off')
     plt.title(f'Predicted: {prediction} ({probability:.2%})')
-    plt.imshow(processed_image)
+    plt.imshow(processed_image, interpolation='nearest')
 
     # Displaying all saliency maps using a loop
     for i, (title, saliency_map) in enumerate(cam_results, start=2):
         plt.subplot(3, 2, i)
         plt.axis('off')
         plt.title(title)
-        plt.imshow(processed_image)  # Show the original image
-        plt.imshow(saliency_map, cmap='jet', alpha=0.5)  # Overlay the saliency map
+        plt.imshow(processed_image, interpolation='nearest')  # Show the original image
+        plt.imshow(saliency_map, cmap='jet', alpha=0.5, interpolation='nearest')  # Overlay the saliency map
         plt.colorbar(fraction=0.046, pad=0.04)  # Show color bar for interpretation
+
+    # Save the figure if a filename is provided
+    if fname:
+        plt.savefig(f'plots/{fname}', bbox_inches='tight', dpi=300)
 
     plt.show()
 
@@ -113,4 +117,4 @@ if __name__ == '__main__':
 
     matplotlib_show(processed_image, explanations, prediction, probability, fname='fastai_all')
 
-    # gradcam_test(detector, img)
+    # gradcam_test(detector, img, fname='gradcam_comparison')

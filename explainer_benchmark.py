@@ -1,4 +1,5 @@
 import os
+import time
 from pathlib import Path
 from typing import List, Dict, Type
 
@@ -48,7 +49,16 @@ def compare_detectors_and_explainers(
 
 def process_image(img: PILImage, detector: Detector, detector_name: str, img_path: str, output_dir: str):
     prediction, probability, _ = detector.get_prediction(img)
-    explanations = detector.explain(img, list(detector.explainers.keys()))
+
+    # Measure time for each explainer
+    explanations = {}
+    for explainer_name in detector.explainers.keys():
+        start_time = time.time()
+        explanation = detector.explain(img, [explainer_name])
+        end_time = time.time()
+        explanations.update(explanation)
+        print(f"{detector_name} - {explainer_name} took {end_time - start_time:.2f} seconds")
+
     processed_image = detector.get_processed_image(img)
 
     # Extract actual label and dataset name from the image path
@@ -103,6 +113,7 @@ def process_image(img: PILImage, detector: Detector, detector_name: str, img_pat
     sanitized_path = img_relative_path_without_ext.replace('/', '_').replace(' ', '-')
     filename = f"{sanitized_path}_{detector_name}.png"
     output_path = os.path.join(output_dir, filename)
+    print(f'Saving image to {output_path}')
 
     # Save the figure
     plt.savefig(output_path, bbox_inches='tight', dpi=300)
@@ -115,7 +126,6 @@ if __name__ == '__main__':
         'FastAI': lambda: FastAIDetector('models/export_21_convnextv2_tiny_epoch_9.pkl'),
         'CLIP': ClipDetector,
         'Corvi': CorviDetector,
-        # 'DIRE': lambda: DireDetector('models/lsun_adm.pth')
     }
 
     explainers = {
@@ -124,4 +134,4 @@ if __name__ == '__main__':
         'SHAP': SHAPExplainer
     }
 
-    compare_detectors_and_explainers(detectors, explainers, img_dirs=['img/fake/midjourney_cifake/'])
+    compare_detectors_and_explainers(detectors, explainers, img_dirs=['img/real', 'img/fake'])
