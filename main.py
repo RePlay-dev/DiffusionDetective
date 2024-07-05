@@ -102,9 +102,6 @@ if __name__ == '__main__':
     # img = PILImage.create('img/real/flickr/371897.jpg')
     # img = PILImage.create('img/fake/synthbuster/midjourney-r0a0852c6t.png')
 
-    # detector = DireDetector('models/lsun_adm.pth')
-    # img = PILImage.create('img/dire-val_lsun-bedroom_adm_0.png')
-
     explainers = ['RISE', 'AblationCAM', 'SHAP']
     detector.add_explainer('RISE', RISEExplainer(detector.model))
     detector.add_explainer('SHAP', SHAPExplainer(detector.model))

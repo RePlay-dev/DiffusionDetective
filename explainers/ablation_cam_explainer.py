@@ -19,7 +19,7 @@ class AblationCAMExplainer(Explainer):
         if hasattr(self.model, 'bb') and hasattr(self.model.bb[0], 'visual'):  # CLIP model
             target_layer = self.model.bb[0].visual.transformer.resblocks[-1]
             reshape_transform = self.clip_reshape_transform
-        elif hasattr(self.model, 'layer4'):  # ResNet (Corvi, DIRE) model
+        elif hasattr(self.model, 'layer4'):  # ResNet model (Corvi)
             target_layer = self.model.layer4[-1]
             reshape_transform = None
         elif hasattr(self.model[0], 'model'):  # ConvNeXT model (FastAI)
