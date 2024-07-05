@@ -5,19 +5,19 @@ from pathlib import Path
 import pandas as pd
 from fastai.vision.core import PILImage
 
-from detectors import FastAIDetector, ClipDetector, CorviDetector
-# The custom labeling function get_y needs to be imported in order to unpickle the FastAI model
+from detectors import DiffusionDetectiveDetector, ClipDetector, CorviDetector
+# The custom labeling function get_y needs to be imported in order to unpickle the DiffusionDetective model
 # noinspection PyUnresolvedReferences
 from utils import get_y
 
 detectors = {
-    'FastAI': FastAIDetector('models/export_21_convnextv2_tiny_epoch_9.pkl'),
+    'DiffusionDetective': DiffusionDetectiveDetector('models/diffusion_detective.pkl'),
     'CLIP': ClipDetector(),
     'Corvi': CorviDetector()
 }
 
 
-def detect_all_in_folder(root_folder: str, detector_name: str = 'FastAI'):
+def detect_all_in_folder(root_folder: str, detector_name: str = 'DiffusionDetective'):
     """
     Runs a detector on all images in `root_folder`
     """
@@ -79,4 +79,4 @@ if __name__ == "__main__":
     image_folder = Path('data/test/')
     benchmark(image_folder, csv_filename='test_results.csv')
 
-    # detect_all_in_folder('data/test/', detector_name='FastAI')
+    # detect_all_in_folder('data/test/', detector_name='DiffusionDetective')

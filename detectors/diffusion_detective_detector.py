@@ -11,7 +11,7 @@ from detectors.base import Detector
 from utils import device
 
 
-class FastAIDetector(Detector):
+class DiffusionDetectiveDetector(Detector):
     def __init__(self, model_path: str):
         self.learn = load_learner(model_path, cpu=(not torch.cuda.is_available()))
         self.model = self.learn.model
@@ -22,7 +22,7 @@ class FastAIDetector(Detector):
         # For some reason, calling predict moves the model to the CPU
         # We have to ensure the model stays on the correct device so any operations after this stay fast
         self.model.to(device)
-        print(f'FastAI detected the image as {result}')
+        print(f'DiffusionDetective detected the image as {result}')
         return result, prob[index.item()].item(), index.item()
 
     def get_processed_tensor(self, img: PILImage) -> TensorImage:

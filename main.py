@@ -4,9 +4,9 @@ from fastai.vision.core import PILImage
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from detectors import FastAIDetector, ClipDetector, CorviDetector
+from detectors import DiffusionDetectiveDetector, ClipDetector, CorviDetector
 from explainers import RISEExplainer, AblationCAMExplainer, SHAPExplainer
-# The custom labeling function get_y needs to be imported in order to unpickle the FastAI model
+# The custom labeling function get_y needs to be imported in order to unpickle the DiffusionDetective model
 # noinspection PyUnresolvedReferences
 from utils import get_y
 
@@ -94,7 +94,7 @@ def matplotlib_show(input_img, explanations, prediction, probability, fname=''):
 
 
 if __name__ == '__main__':
-    detector = FastAIDetector('models/export_21_convnextv2_tiny_epoch_9.pkl')
+    detector = DiffusionDetectiveDetector('models/diffusion_detective.pkl')
     # detector = ClipDetector()
     # detector = CorviDetector()
 

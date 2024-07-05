@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 from fastai.vision.core import PILImage
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from detectors import FastAIDetector, ClipDetector, CorviDetector, Detector
+from detectors import DiffusionDetectiveDetector, ClipDetector, CorviDetector, Detector
 from explainers import RISEExplainer, AblationCAMExplainer, SHAPExplainer
-# The custom labeling function get_y needs to be imported in order to unpickle the FastAI model
+# The custom labeling function get_y needs to be imported in order to unpickle the DiffusionDetective model
 # noinspection PyUnresolvedReferences
 from utils import get_y
 
@@ -123,7 +123,7 @@ def process_image(img: PILImage, detector: Detector, detector_name: str, img_pat
 # Usage
 if __name__ == '__main__':
     detectors = {
-        'FastAI': lambda: FastAIDetector('models/export_21_convnextv2_tiny_epoch_9.pkl'),
+        'DiffusionDetective': lambda: DiffusionDetectiveDetector('models/diffusion_detective.pkl'),
         'CLIP': ClipDetector,
         'Corvi': CorviDetector,
     }

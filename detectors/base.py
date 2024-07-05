@@ -38,7 +38,7 @@ class Detector(ABC):
                 results[name] = explainer.get_saliency(img_tensor)
                 # RISE Calculates explanations for all classes, so it needs the index to provide the correct map
                 if name == 'RISE' and len(results[name].shape) > 2:
-                    # TODO: Clean up that the index will not be returned by get prediction but only for detectors which really need it, such as FastAI
+                    # TODO: Clean up that the index will not be returned by get prediction but only for detectors which really need it, such as DiffusionDetective
                     _, _, index = self.get_prediction(img)
                     results[name] = results[name][index]
         return results

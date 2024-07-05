@@ -22,7 +22,7 @@ class AblationCAMExplainer(Explainer):
         elif hasattr(self.model, 'layer4'):  # ResNet model (Corvi)
             target_layer = self.model.layer4[-1]
             reshape_transform = None
-        elif hasattr(self.model[0], 'model'):  # ConvNeXT model (FastAI)
+        elif hasattr(self.model[0], 'model'):  # ConvNeXT model (DiffusionDetective)
             convnext_model = self.model[0].model
             last_stage = convnext_model.stages[-1]
             last_block = last_stage.blocks[-1]
