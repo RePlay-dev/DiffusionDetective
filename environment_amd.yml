@@ -1,0 +1,19 @@
+name: diffusionDetective
+dependencies:
+  - python=3.11
+  - jupyter
+  - jupyterlab_execute_time
+  - scikit-image
+  - pip
+  - pip:
+    - --extra-index-url https://download.pytorch.org/whl/rocm6.0
+    - torch
+    - torchvision
+    - fastai
+    - timm
+    - captum
+    - gradio
+    - Flask
+    - flask-compress
+    - grad-cam
+    - open_clip_torch
