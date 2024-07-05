@@ -1,22 +1,10 @@
-# Ignore all files and subfolders in the 'img' directory
-/img/*
-
-# But keep the 'img' directory itself
-!/img/.gitkeep
-
-# Ignore all files and subfolders in the 'img' directory
-/models/*
-
-# But keep the 'img' directory itself
-!/models/.gitkeep
-
-# Ignore all files and subfolders in the 'img' directory
+# Ignore all files and subfolders in the 'masks' directory
 /masks/*
 
-# But keep the 'img' directory itself
+# But keep the 'masks' directory itself
 !/masks/.gitkeep
 
-# Ignore all files and subfolders in the 'img' directory
+# Ignore all files and subfolders in the 'plots' directory
 /plots/*
 
 # Ignore all subfolders and their contents in the 'data' directory
